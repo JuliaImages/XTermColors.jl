@@ -15,7 +15,7 @@ end
         @test enc.size === (1, 2)
         check_encoded(
             @ensurecolor(xterm_8bit_encode(enc, img)),
-            ["\e[0m\e[38;5;232;48;5;248m▀\e[38;5;239;48;5;255m▀\e[0m"],
+            ["\e[0m\e[38;5;17;48;5;250m▀\e[38;5;240;48;5;232m▀\e[0m"],
         )
     end
     @testset "transparent gray square" begin
@@ -25,7 +25,7 @@ end
         @test enc.size === (1, 2)
         check_encoded(
             @ensurecolor(xterm_8bit_encode(enc, img)),
-            ["\e[0m\e[38;5;232;48;5;248m▀\e[38;5;239;48;5;255m▀\e[0m"],
+            ["\e[0m\e[38;5;17;48;5;250m▀\e[38;5;240;48;5;232m▀\e[0m"],
         )
     end
     # the following tests checks the correct use of restrict
@@ -71,8 +71,8 @@ end
         check_encoded(
             @ensurecolor(xterm_8bit_encode(enc, img)),
             [
-                "\e[0m\e[38;5;232m██\e[38;5;239m██\e[0m",
-                "\e[0m\e[38;5;248m██\e[38;5;255m██\e[0m",
+                "\e[0m\e[38;5;17m██\e[38;5;240m██\e[0m",
+                "\e[0m\e[38;5;250m██\e[38;5;232m██\e[0m",
             ],
         )
     end
@@ -82,8 +82,8 @@ end
         check_encoded(
             @ensurecolor(xterm_8bit_encode(enc, img)),
             [
-                "\e[0m\e[38;5;232m██\e[38;5;239m▓▓\e[0m",
-                "\e[0m\e[38;5;248m░░\e[38;5;255m⋅⋅\e[0m",
+                "\e[0m\e[38;5;17m██\e[38;5;240m▓▓\e[0m",
+                "\e[0m\e[38;5;250m░░\e[38;5;232m⋅⋅\e[0m",
             ],
         )
     end
@@ -218,7 +218,7 @@ end
         @test enc.size === (1, 4)
         check_encoded(
             @ensurecolor(xterm_8bit_encode(enc, img)),
-            ["\e[0m\e[38;5;232m█\e[38;5;239m█\e[38;5;248m█\e[38;5;255m█\e[0m"],
+            ["\e[0m\e[38;5;17m█\e[38;5;240m█\e[38;5;250m█\e[38;5;232m█\e[0m"],
         )
     end
     @testset "transparent gray line" begin
@@ -226,7 +226,7 @@ end
         @test enc.size === (1, 4)
         check_encoded(
             @ensurecolor(xterm_8bit_encode(enc, img)),
-            ["\e[0m\e[38;5;232m█\e[38;5;239m▓\e[38;5;248m░\e[38;5;255m⋅\e[0m"],
+            ["\e[0m\e[38;5;17m█\e[38;5;240m▓\e[38;5;250m░\e[38;5;232m⋅\e[0m"],
         )
     end
     @testset "rgb line" begin
@@ -235,7 +235,7 @@ end
         check_encoded(
             @ensurecolor(xterm_8bit_encode(enc, img)),
             [
-                "\e[0m\e[38;5;18m█\e[38;5;56m█\e[38;5;91m█\e[38;5;126m█\e[38;5;161m█\e[38;5;88m█\e[0m",
+                "\e[0m\e[38;5;19m█\e[38;5;21m█\e[38;5;56m█\e[38;5;126m█\e[38;5;161m█\e[38;5;89m█\e[0m",
             ],
         )
     end
@@ -249,13 +249,13 @@ end
         @test enc.size === (1, 9)
         check_encoded(
             @ensurecolor(xterm_8bit_encode(enc, img)),
-            ["\e[0m\e[38;5;232m██ \e[0m … \e[38;5;255m██ \e[0m"],
+            ["\e[0m\e[38;5;17m██ \e[0m … \e[38;5;232m██ \e[0m"],
         )
         img, enc = _downscale_big(gray_line, 12)
         @test enc.size === (1, 12)
         check_encoded(
             @ensurecolor(xterm_8bit_encode(enc, img)),
-            ["\e[0m\e[38;5;232m██ \e[38;5;239m██ \e[38;5;248m██ \e[38;5;255m██ \e[0m"],
+            ["\e[0m\e[38;5;17m██ \e[38;5;240m██ \e[38;5;250m██ \e[38;5;232m██ \e[0m"],
         )
     end
     @testset "transparent gray line" begin
@@ -263,13 +263,13 @@ end
         @test enc.size === (1, 9)
         check_encoded(
             @ensurecolor(xterm_8bit_encode(enc, img)),
-            ["\e[0m\e[38;5;232m██ \e[0m … \e[38;5;255m⋅⋅ \e[0m"],
+            ["\e[0m\e[38;5;17m██ \e[0m … \e[38;5;232m⋅⋅ \e[0m"],
         )
         img, enc = _downscale_big(gray_line_alpha, 12)
         @test enc.size === (1, 12)
         check_encoded(
             @ensurecolor(xterm_8bit_encode(enc, img)),
-            ["\e[0m\e[38;5;232m██ \e[38;5;239m▓▓ \e[38;5;248m░░ \e[38;5;255m⋅⋅ \e[0m"],
+            ["\e[0m\e[38;5;17m██ \e[38;5;240m▓▓ \e[38;5;250m░░ \e[38;5;232m⋅⋅ \e[0m"],
         )
     end
     @testset "rgb line" begin
@@ -277,14 +277,14 @@ end
         @test enc.size === (1, 9)
         check_encoded(
             @ensurecolor(xterm_8bit_encode(enc, img)),
-            ["\e[0m\e[38;5;21m██ \e[0m … \e[38;5;196m██ \e[0m"],
+            ["\e[0m\e[38;5;22m██ \e[0m … \e[38;5;197m██ \e[0m"],
         )
         img, enc = _downscale_big(rgb_line, 22)
         @test enc.size === (1, 21)
         check_encoded(
             @ensurecolor(xterm_8bit_encode(enc, img)),
             [
-                "\e[0m\e[38;5;21m██ \e[38;5;21m██ \e[38;5;56m██ \e[0m … \e[38;5;161m██ \e[38;5;196m██ \e[38;5;196m██ \e[0m",
+                "\e[0m\e[38;5;22m██ \e[38;5;21m██ \e[38;5;21m██ \e[0m … \e[38;5;161m██ \e[38;5;161m██ \e[38;5;197m██ \e[0m",
             ],
         )
     end
@@ -385,7 +385,7 @@ end
         check_encoded(
             @ensurecolor(xterm_8bit_encode(enc, img)),
             [
-                "\e[0m\e[38;5;18m█\e[38;5;56m█\e[38;5;91m█\e[38;5;126m█\e[38;5;161m█\e[38;5;88m█\e[0m",
+                "\e[0m\e[38;5;19m█\e[38;5;21m█\e[38;5;56m█\e[38;5;126m█\e[38;5;161m█\e[38;5;89m█\e[0m",
             ],
         )
     end
@@ -394,14 +394,14 @@ end
         @test enc.size === (1, 9)
         check_encoded(
             @ensurecolor(xterm_8bit_encode(enc, img)),
-            ["\e[0m\e[38;5;21m██ \e[0m … \e[38;5;196m██ \e[0m"],
+            ["\e[0m\e[38;5;22m██ \e[0m … \e[38;5;197m██ \e[0m"],
         )
         img, enc = _downscale_big(OffsetArray(rgb_line, (-2,)), 22)
         @test enc.size === (1, 21)
         check_encoded(
             @ensurecolor(xterm_8bit_encode(enc, img)),
             [
-                "\e[0m\e[38;5;21m██ \e[38;5;21m██ \e[38;5;56m██ \e[0m … \e[38;5;161m██ \e[38;5;196m██ \e[38;5;196m██ \e[0m",
+                "\e[0m\e[38;5;22m██ \e[38;5;21m██ \e[38;5;21m██ \e[0m … \e[38;5;161m██ \e[38;5;161m██ \e[38;5;197m██ \e[0m",
             ],
         )
     end
