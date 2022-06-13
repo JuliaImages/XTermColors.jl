@@ -1,6 +1,6 @@
 module XTermColors
 
-using ImageBase
+using ColorTypes
 using Crayons
 
 export xterm_8bit_encode, xterm_24bit_encode
@@ -9,6 +9,7 @@ export xterm_8bit_encode, xterm_24bit_encode
 include("colorant2ansi.jl")
 include("encoder.jl")
 include("decoder.jl")
+include("utils.jl")
 
 const colormode = Ref{TermColorDepth}(TermColor8bit())
 
