@@ -9,11 +9,16 @@ import XTermColors: colorant2ansi, _colorant2ansi
 import XTermColors: SmallBlocks, BigBlocks
 
 # define some test images
-gray_square = colorview(Gray, N0f8[0. .3; .7 1])
-gray_square_alpha = colorview(GrayA, N0f8[0. .3; .7 1], N0f8[1 .7; .3 0])
-gray_line = colorview(Gray, N0f8[0., .3, .7, 1])
-gray_line_alpha = colorview(GrayA, N0f8[0., .3, .7, 1], N0f8[1, .7, .3, 0])
-rgb_line = colorview(RGB, range(0, stop=1, length=20), zeroarray, range(1, stop=0, length=20))
+gray_square = colorview(Gray, N0f8[0.0 0.3; 0.7 1])
+gray_square_alpha = colorview(GrayA, N0f8[0.0 0.3; 0.7 1], N0f8[1 0.7; 0.3 0])
+gray_line = colorview(Gray, N0f8[0.0, 0.3, 0.7, 1])
+gray_line_alpha = colorview(GrayA, N0f8[0.0, 0.3, 0.7, 1], N0f8[1, 0.7, 0.3, 0])
+rgb_line = colorview(
+    RGB,
+    range(0, stop = 1, length = 20),
+    zeroarray,
+    range(1, stop = 0, length = 20),
+)
 rgb_line_4d = repeat(repeat(rgb_line', 1, 1, 1, 1), 1, 1, 2, 2)
 
 camera_man = testimage("camera")  # .tif
@@ -85,11 +90,7 @@ function _downscale_big(img::AbstractVector{<:Colorant}, maxwidth::Int)
     img, BigBlocks((1, n < w ? 3(2n + 1) : 3w))  # downscaling of img here is 'fake'
 end
 
-for t in (
-    "tst_colorant2ansi.jl",
-    "tst_encoder.jl",
-    "tst_decoder.jl",
-)
+for t in ("tst_colorant2ansi.jl", "tst_encoder.jl", "tst_decoder.jl")
     @testset "$t" begin
         include(t)
     end

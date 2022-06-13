@@ -1,9 +1,9 @@
 abstract type ImageEncoder end
 struct BigBlocks <: ImageEncoder
-    size::NTuple{2, Int}
+    size::NTuple{2,Int}
 end
 struct SmallBlocks <: ImageEncoder
-    size::NTuple{2, Int}
+    size::NTuple{2,Int}
 end
 
 const RESET = Crayon(reset = true)
@@ -47,21 +47,21 @@ function xterm_encode(
     colordepth::TermColorDepth,
     img::AbstractMatrix{<:Colorant};
     trail_nl::Bool = false,
-    ret::Bool = false
+    ret::Bool = false,
 )
     yinds, xinds = axes(img)
     for y in first(yinds):2:last(yinds)
         _printc(io, RESET)
         for x in xinds
             fgcol = _colorant2ansi(img[y, x], colordepth)
-            bgcol = if y+1 <= last(yinds)
-                _colorant2ansi(img[y+1, x], colordepth)
+            bgcol = if y + 1 <= last(yinds)
+                _colorant2ansi(img[y + 1, x], colordepth)
             else
                 # if reached it means that the last character row
                 # has only the upper pixel defined.
                 nothing
             end
-            _printc(io, Crayon(foreground=fgcol, background=bgcol), "▀")
+            _printc(io, Crayon(foreground = fgcol, background = bgcol), "▀")
         end
         _printc(io, RESET)
         (trail_nl || y < last(yinds)) && println(io)
@@ -98,7 +98,7 @@ function xterm_encode(
     colordepth::TermColorDepth,
     img::AbstractVector{<:Colorant};
     trail_nl::Bool = false,
-    ret::Bool = false
+    ret::Bool = false,
 )
     _printc(io, RESET)
     for i in axes(img, 1)
@@ -118,13 +118,13 @@ function xterm_encode(
     colordepth::TermColorDepth,
     img::AbstractVector{<:Colorant};
     trail_nl::Bool = false,
-    ret::Bool = false
+    ret::Bool = false,
 )
     w = length(img)
     n = enc.size[2] ÷ 3 == w ? w : enc.size[2] ÷ 6
     # left or full
     _printc(io, RESET)
-    for i in (0:n-1) .+ firstindex(img)
+    for i in (0:(n - 1)) .+ firstindex(img)
         color = img[i]
         fgcol = _colorant2ansi(color, colordepth)
         chr = _charof(alpha(color))
@@ -132,7 +132,7 @@ function xterm_encode(
     end
     if n < w  # right part
         _printc(io, RESET, " … ")
-        for i in (-n+1:0) .+ lastindex(img)
+        for i in ((-n + 1):0) .+ lastindex(img)
             color = img[i]
             fgcol = _colorant2ansi(color, colordepth)
             chr = _charof(alpha(color))
