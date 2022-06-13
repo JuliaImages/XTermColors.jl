@@ -90,6 +90,27 @@
                 @test enc(col) === (r, r, r)
             end
         end
+        function _ref_color2ansi(c::AbstractRGB)
+            map(c -> round(Int, clamp01nan(c) * 255), (red(c), green(c), blue(c)))
+        end
+        _ref_color2ansi(c::Gray) = _ref_color2ansi(RGB(c))
+        _ref_ansi2color(c::NTuple{3}) = RGB{N0f8}(c ./ 255...)
+        @testset "decoder" begin
+            enc = TermColor24bit()
+            colors = rand(RGB{N0f8}, 256)
+            indices = enc.(colors)
+            @test indices == _ref_color2ansi.(colors)
+            decoded_colors = enc.(indices)
+            @test decoded_colors ≈ colors
+            @test decoded_colors ≈ _ref_ansi2color.(indices)
+
+            colors = rand(RGB{Float64}, 256)
+            indices = enc.(colors)
+            @test indices == _ref_color2ansi.(colors)
+            decoded_colors = enc.(indices)
+            @test !(decoded_colors ≈ colors) # for Float64, there will be numerical error
+            @test decoded_colors ≈ _ref_ansi2color.(indices)
+        end
     end
 
     # Internally non RGB Colors should be converted to RGB

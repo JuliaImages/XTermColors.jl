@@ -1,6 +1,7 @@
 module XTermColors
 
 using ColorTypes
+using ColorTypes: N0f8 # from FixedPointNumbers
 using Crayons
 
 export xterm_8bit_encode, xterm_24bit_encode

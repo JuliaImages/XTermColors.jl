@@ -73,20 +73,34 @@ end
 """
     TermColor24bit()
 
-The RGB/Grayscale to 24bit color (truecolor) codes encoder. Other color types will be converted
-to RGB first. The transparent alpha channel, if exists, will be dropped.
+The RGB/Grayscale to 24bit color (truecolor) codes encoder. Other color types will be
+converted to RGB first. The transparent alpha channel, if exists, will be dropped.
 
-The encoder works as a functor `enc(color)`:
+The `TermColor24bit` can be used as both an encoder and an decoder, depends on the input
+types.
 
-```jldoctest; setup=:(using ImageBase; using XTermColors: TermColor24bit)
+```jldoctest termcolor24bit; setup=:(using ImageBase; using XTermColors: TermColor24bit)
 julia> enc = TermColor24bit()
 XTermColors.TermColor24bit()
 
-julia> enc(RGB(1.0, 1.0, 0.0))
+julia> enc(RGB(1.0, 1.0, 0.0)) # color -> xterm-24bit color index
 (255, 255, 0)
 
-julia> enc(RGB(0.5, 0.5, 0.5))
+julia> enc(RGB(0.5, 0.5, 0.5)) # color -> xterm-24bit color index
 (128, 128, 0)
+
+julia> enc((255, 255, 0)) # xterm-24bit color index -> color
+RGB{N0f8}(1.0,1.0,0.0)
+```
+
+Note that decoder will always return RGB values:
+
+```jldoctest termcolor24bit
+julia> enc(Gray(0.5))
+(128, 128, 128)
+
+julia> enc((128, 128, 128))
+RGB{N0f8}(0.502,0.502,0.502)
 ```
 """
 struct TermColor24bit <: TermColorDepth end
@@ -100,3 +114,5 @@ function (enc::TermColor24bit)(c::AbstractGray)
     r = round(Int, clamp01nan(real(c)) * 255)
     r, r, r
 end
+
+(enc::TermColor24bit)(c::NTuple{3,<:Integer}) = RGB(map(x -> N0f8(x / 255), c)...)
