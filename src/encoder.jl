@@ -35,7 +35,7 @@ ansi terminal colors or directly writes into a i/o stream.
 - The encoder `enc` specifies which kind of unicode represenation
   should be used.
 
-- The `colordepth` can either be `TermColor8bit()` or `TermColor24bit()`
+- The `colordepth` can either be `TermColor256()` or `TermColor24bit()`
   and specifies which terminal color codes should be used.
 
 It `ret` is set, the function returns a vector of strings containing the encoded image.
@@ -44,7 +44,7 @@ Each element represent one line. The lines do not contain newline characters.
 function xterm_encode(
     io::IO,
     ::SmallBlocks,
-    colordepth::TermColorDepth,
+    color_enc::TermColorDepth,
     img::AbstractMatrix{<:Colorant};
     trail_nl::Bool = false,
     ret::Bool = false,
@@ -53,9 +53,9 @@ function xterm_encode(
     for y in first(yinds):2:last(yinds)
         _printc(io, RESET)
         for x in xinds
-            fgcol = _colorant2ansi(img[y, x], colordepth)
+            fgcol = color_enc(img[y, x])
             bgcol = if y + 1 <= last(yinds)
-                _colorant2ansi(img[y + 1, x], colordepth)
+                color_enc(img[y + 1, x])
             else
                 # if reached it means that the last character row
                 # has only the upper pixel defined.
@@ -72,7 +72,7 @@ end
 function xterm_encode(
     io::IO,
     ::BigBlocks,
-    colordepth::TermColorDepth,
+    color_enc::TermColorDepth,
     img::AbstractMatrix{<:Colorant};
     trail_nl::Bool = false,
     ret::Bool = false,
@@ -82,7 +82,7 @@ function xterm_encode(
         _printc(io, RESET)
         for x in xinds
             color = img[y, x]
-            fgcol = _colorant2ansi(color, colordepth)
+            fgcol = color_enc(color)
             chr = _charof(alpha(color))
             _printc(io, Crayon(foreground = fgcol), chr, chr)
         end
@@ -95,7 +95,7 @@ end
 function xterm_encode(
     io::IO,
     ::SmallBlocks,
-    colordepth::TermColorDepth,
+    color_enc::TermColorDepth,
     img::AbstractVector{<:Colorant};
     trail_nl::Bool = false,
     ret::Bool = false,
@@ -103,7 +103,7 @@ function xterm_encode(
     _printc(io, RESET)
     for i in axes(img, 1)
         color = img[i]
-        fgcol = _colorant2ansi(color, colordepth)
+        fgcol = color_enc(color)
         chr = _charof(alpha(color))
         _printc(io, Crayon(foreground = fgcol), chr)
     end
@@ -115,7 +115,7 @@ end
 function xterm_encode(
     io::IO,
     enc::BigBlocks,
-    colordepth::TermColorDepth,
+    color_enc::TermColorDepth,
     img::AbstractVector{<:Colorant};
     trail_nl::Bool = false,
     ret::Bool = false,
@@ -126,7 +126,7 @@ function xterm_encode(
     _printc(io, RESET)
     for i in (0:(n - 1)) .+ firstindex(img)
         color = img[i]
-        fgcol = _colorant2ansi(color, colordepth)
+        fgcol = color_enc(color)
         chr = _charof(alpha(color))
         _printc(io, Crayon(foreground = fgcol), chr, chr, " ")
     end
@@ -134,7 +134,7 @@ function xterm_encode(
         _printc(io, RESET, " … ")
         for i in ((-n + 1):0) .+ lastindex(img)
             color = img[i]
-            fgcol = _colorant2ansi(color, colordepth)
+            fgcol = color_enc(color)
             chr = _charof(alpha(color))
             _printc(io, Crayon(foreground = fgcol), chr, chr, " ")
         end
@@ -148,11 +148,11 @@ xterm_24bit_encode(io::IO, enc::ImageEncoder, args...; kw...) =
     xterm_encode(io, enc, TermColor24bit(), args...; kw...)
 
 xterm_8bit_encode(io::IO, enc::ImageEncoder, args...; kw...) =
-    xterm_encode(io, enc, TermColor8bit(), args...; kw...)
+    xterm_encode(io, enc, TermColor256(), args...; kw...)
 
 # use a `PipeBuffer` as io and returns encoded data reading lines of this buffer (using `readlines(io)`)
 xterm_24bit_encode(enc::ImageEncoder, args...; kw...) =
     xterm_encode(PipeBuffer(), enc, TermColor24bit(), args...; ret = true, kw...)
 
 xterm_8bit_encode(enc::ImageEncoder, args...; kw...) =
-    xterm_encode(PipeBuffer(), enc, TermColor8bit(), args...; ret = true, kw...)
+    xterm_encode(PipeBuffer(), enc, TermColor256(), args...; ret = true, kw...)

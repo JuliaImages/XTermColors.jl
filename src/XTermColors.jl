@@ -6,12 +6,13 @@ using Crayons
 export xterm_8bit_encode, xterm_24bit_encode
 # export xterm_8bit_decode, xterm_24bit_decode
 
-include("colorant2ansi.jl")
+include("colors.jl")
 include("encoder.jl")
 include("decoder.jl")
 include("utils.jl")
+include("lookups.jl")
 
-const colormode = Ref{TermColorDepth}(TermColor8bit())
+const colormode = Ref{TermColorDepth}(TermColor256())
 
 """
     set_colormode(bit::Int)
@@ -20,7 +21,7 @@ Sets the terminal color depth to the given argument.
 """
 function set_colormode(bit::Int)
     if bit == 8
-        colormode[] = TermColor8bit()
+        colormode[] = TermColor256()
     elseif bit == 24
         colormode[] = TermColor24bit()
     else

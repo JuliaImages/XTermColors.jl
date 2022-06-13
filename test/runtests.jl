@@ -4,8 +4,7 @@ using OffsetArrays
 using XTermColors
 using ImageBase
 
-import XTermColors: TermColorDepth, TermColor8bit, TermColor24bit
-import XTermColors: colorant2ansi, _colorant2ansi
+import XTermColors: TermColorDepth, TermColor256, TermColor24bit
 import XTermColors: SmallBlocks, BigBlocks
 
 # define some test images
@@ -90,14 +89,14 @@ function _downscale_big(img::AbstractVector{<:Colorant}, maxwidth::Int)
     img, BigBlocks((1, n < w ? 3(2n + 1) : 3w))  # downscaling of img here is 'fake'
 end
 
-for t in ("tst_colorant2ansi.jl", "tst_encoder.jl", "tst_decoder.jl")
+for t in ("tst_colors.jl", "tst_encoder.jl", "tst_decoder.jl")
     @testset "$t" begin
         include(t)
     end
 end
 
 @testset "Color depth" begin
-    @test XTermColors.set_colormode(8) == TermColor8bit()
+    @test XTermColors.set_colormode(8) == TermColor256()
     @test XTermColors.set_colormode(24) == TermColor24bit()
     @test_throws ErrorException XTermColors.set_colormode(1)
 end
