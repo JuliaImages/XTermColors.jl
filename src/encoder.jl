@@ -152,7 +152,7 @@ xterm_8bit_encode(io::IO, enc::ImageEncoder, args...; kw...) =
 
 # use a `PipeBuffer` as io and returns encoded data reading lines of this buffer (using `readlines(io)`)
 xterm_24bit_encode(enc::ImageEncoder, args...; kw...) =
-    xterm_encode(PipeBuffer(), enc, TermColor24bit(), args...; ret = true, kw...)
+    xterm_24bit_encode(PipeBuffer(), enc, args...; ret = true, kw...)
 
 xterm_8bit_encode(enc::ImageEncoder, args...; kw...) =
-    xterm_encode(PipeBuffer(), enc, TermColor256(), args...; ret = true, kw...)
+    xterm_8bit_encode(PipeBuffer(), enc, args...; ret = true, kw...)

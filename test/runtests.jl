@@ -94,9 +94,3 @@ for t in ("tst_colors.jl", "tst_encoder.jl", "tst_decoder.jl")
         include(t)
     end
 end
-
-@testset "Color depth" begin
-    @test XTermColors.set_colormode(8) == TermColor256()
-    @test XTermColors.set_colormode(24) == TermColor24bit()
-    @test_throws ErrorException XTermColors.set_colormode(1)
-end
