@@ -92,14 +92,14 @@ function ascii_encode(
     colordepth::TermColorDepth,
     img::AbstractMatrix{<:Colorant};
     trail_nl::Bool=false,
-    ret::Bool=false,
+    ret::Bool=false
 )
     yinds, xinds = axes(img)
     for y in first(yinds):2:last(yinds)
         _printc(io, RESET)
         for x in xinds
             fgcol = _colorant2ansi(img[y, x], colordepth)
-            bgcol = if y + 1 <= last(yinds)
+            bgcol = if y + 1 ≤ last(yinds)
                 _colorant2ansi(img[y + 1, x], colordepth)
             else
                 # if reached it means that the last character row
@@ -120,7 +120,7 @@ function ascii_encode(
     colordepth::TermColorDepth,
     img::AbstractMatrix{<:Colorant};
     trail_nl::Bool=false,
-    ret::Bool=false,
+    ret::Bool=false
 )
     yinds, xinds = axes(img)
     for y in yinds
@@ -143,7 +143,7 @@ function ascii_encode(
     colordepth::TermColorDepth,
     img::AbstractVector{<:Colorant};
     trail_nl::Bool=false,
-    ret::Bool=false,
+    ret::Bool=false
 )
     _printc(io, RESET)
     for i in axes(img, 1)
@@ -163,7 +163,7 @@ function ascii_encode(
     colordepth::TermColorDepth,
     img::AbstractVector{<:Colorant};
     trail_nl::Bool=false,
-    ret::Bool=false,
+    ret::Bool=false
 )
     w = length(img)
     n = enc.size[2] ÷ 3 == w ? w : enc.size[2] ÷ 6
@@ -213,11 +213,11 @@ function ascii_display(
     img::AbstractMatrix{<:Colorant},
     colordepth::TermColorDepth,
     maxsize::Tuple=displaysize(io);
-    kwargs...,
+    kwargs...
 )
     io_h, io_w = maxsize
     img_h, img_w = map(length, axes(img))
-    downscale = img_h <= io_h - 4 && 2img_w <= io_w ? _downscale_big : _downscale_small
+    downscale = img_h ≤ io_h - 4 && 2img_w ≤ io_w ? _downscale_big : _downscale_small
     img, enc = downscale(img, (io_h - 4, io_w))
     ascii_encode(io, enc, colordepth, img; kwargs...)
     io
@@ -228,11 +228,11 @@ function ascii_display(
     img::AbstractVector{<:Colorant},
     colordepth::TermColorDepth,
     maxsize::Tuple=displaysize(io);
-    kwargs...,
+    kwargs...
 )
     io_h, io_w = maxsize
     img_w = length(img)
-    downscale = 3img_w <= io_w ? _downscale_big : _downscale_small
+    downscale = 3img_w ≤ io_w ? _downscale_big : _downscale_small
     img, enc = downscale(img, io_w)
     ascii_encode(io, enc, colordepth, img; kwargs...)
     io

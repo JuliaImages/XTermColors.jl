@@ -10,9 +10,14 @@ import XTermColors: colorant2ansi, _colorant2ansi
 
 include("common.jl")
 
-function check_encoded(res::Vector{String}, expected::Vector{String})
-    @test length(res) === length(expected)
-    @test all(res .== expected)
+macro check_enc(res, expected)
+    esc(
+        quote
+            @test length($res) === length($expected)
+            all($res .== $expected) || @show $res
+            @test all($res .== $expected)
+        end,
+    )
 end
 
 for t in ("tst_colorant2ansi.jl", "tst_ascii.jl")
@@ -21,7 +26,7 @@ for t in ("tst_colorant2ansi.jl", "tst_ascii.jl")
     end
 end
 
-@testset "Color depth" begin
+@testset "color depth" begin
     @test XTermColors.set_colormode(8) == TermColor8bit()
     @test XTermColors.set_colormode(24) == TermColor24bit()
     @test_throws ErrorException XTermColors.set_colormode(1)
