@@ -6,10 +6,11 @@ struct SmallBlocks <: ImageEncoder
     size::NTuple{2,Int}
 end
 
+const ALPHA_CHARS = Ref(('⋅', '░', '▒', '▓', '█'))
 const RESET = Crayon(; reset=true)
-const alpha_chars = ('⋅', '░', '▒', '▓', '█')
 
 function _charof(alpha)
+    alpha_chars = ALPHA_CHARS[]
     idx = round(Int, alpha * (length(alpha_chars) - 1))
     alpha_chars[clamp(idx + 1, 1, length(alpha_chars))]
 end
