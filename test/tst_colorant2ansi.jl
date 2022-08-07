@@ -1,33 +1,37 @@
-@testset "Not exported Interface" begin
+@testset "Un-exported Interface" begin
     @test supertype(TermColor8bit) <: TermColorDepth
     @test supertype(TermColor24bit) <: TermColorDepth
 
     # This tests if the mapping from RGB to the
     # 8bit (256) ansi color codes is correct
     @testset "8bit colors" begin
-        # reference functions to compare against
-        function _ref_col2ansi(r, g, b)
-            r6, g6, b6 = map(c -> round(Int, 5c), (r, g, b))
-            16 + 36r6 + 6g6 + b6
-        end
-        function _ref_col2ansi(gr)
-            round(Int, 232 + 23gr)
-        end
-        @testset "RGB" begin
-            for col in rand(RGB, 10)
-                r, g, b = red(col), green(col), blue(col)
-                ri, gi, bi = map(c -> round(Int, 23c), (r, g, b))
-                if ri == gi == bi
-                    @test _colorant2ansi(col, TermColor8bit()) === _ref_col2ansi(r)
-                else
-                    @test _colorant2ansi(col, TermColor8bit()) === _ref_col2ansi(r, g, b)
-                end
+        @testset "RGB - Gray" begin
+            for idx in 16:255
+                idx % 43 == 16 && continue  # skip values mapping to cube levels
+                hex = XTermColors.TERMCOLOR256_LOOKUP[idx]
+                col = RGB(reinterpret(RGB24, hex))
+                @test _colorant2ansi(col, TermColor8bit()) == idx
             end
         end
-        @testset "Gray" begin
-            for col in rand(Gray, 10)
-                r = real(col)
-                @test _colorant2ansi(col, TermColor8bit()) === _ref_col2ansi(r)
+
+        @testset "decoder" begin
+            enc = TermColor8bit()
+
+            @testset "Gray scale" begin
+                for idx in 232:255
+                    hex = XTermColors.TERMCOLOR256_LOOKUP[idx]
+                    c = RGB(reinterpret(RGB24, hex))
+                    @test enc(Gray(red(c))) == c
+                end
+            end
+
+            @testset "RGB scale" begin
+                for idx in 16:231
+                    idx % 43 == 16 && continue
+                    hex = XTermColors.TERMCOLOR256_LOOKUP[idx]
+                    c = RGB(reinterpret(RGB24, hex))
+                    @test enc(c) == c
+                end
             end
         end
     end
@@ -88,19 +92,17 @@ end
         end
     end
 
-    # Check if exported interface propagatres conversions
+    # Check if exported interface propagates conversions
     @testset "Non RGB" begin
         for col_rgb in rand(RGB, 10)
-            col_other = convert(HSV, col_rgb)
-            @test colorant2ansi(col_rgb) === colorant2ansi(col_other)
+            @test colorant2ansi(col_rgb) === colorant2ansi(convert(HSV, col_rgb))
         end
     end
 
-    # Check if exported interface propagatres conversions
+    # Check if exported interface propagates conversions
     @testset "TransparentColor" begin
         for col in (rand(RGB, 10)..., rand(HSV, 10)...)
-            acol = alphacolor(col, rand())
-            @test colorant2ansi(col) === colorant2ansi(acol)
+            @test colorant2ansi(col) === colorant2ansi(alphacolor(col, rand()))
         end
     end
 end
