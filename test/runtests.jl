@@ -25,9 +25,3 @@ for t in ("tst_colorant2ansi.jl", "tst_ascii.jl")
         include(t)
     end
 end
-
-@testset "color depth" begin
-    @test XTermColors.set_colormode(8) == TermColor8bit()
-    @test XTermColors.set_colormode(24) == TermColor24bit()
-    @test_throws ErrorException XTermColors.set_colormode(1)
-end
