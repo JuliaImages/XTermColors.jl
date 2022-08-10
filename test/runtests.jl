@@ -2,7 +2,7 @@ using Test, TestImages, ReferenceTests
 using ImageTransformations
 using OffsetArrays
 using XTermColors
-using ImageBase
+using ImageBase  # for `N0f8`
 
 import XTermColors: TermColorDepth, TermColor8bit, TermColor24bit
 import XTermColors: ascii_encode, _downscale_small, _downscale_big

@@ -11,8 +11,9 @@ const RESET = Crayon(; reset=true)
 
 function _charof(alpha)
     alpha_chars = ALPHA_CHARS[]
-    idx = round(Int, alpha * (length(alpha_chars) - 1))
-    alpha_chars[clamp(idx + 1, 1, length(alpha_chars))]
+    nc = length(alpha_chars)
+    idx = round(Int, alpha * (nc - 1))
+    alpha_chars[clamp(idx + 1, 1, nc)]
 end
 
 function _downscale_small(img::AbstractMatrix{<:Colorant}, maxsize::NTuple{2,Int})
@@ -27,20 +28,20 @@ function _downscale_small(img::AbstractMatrix{<:Colorant}, maxsize::NTuple{2,Int
             b. number of visible characters per line (the remaining are colorcodes).
     =#
     maxheight, maxwidth = max.(maxsize, 5)
-    h, w = map(length, axes(img))
+    h, w = size(img)
     while ceil(h / 2) > maxheight || w > maxwidth
         img = restrict(img)
-        h, w = map(length, axes(img))
+        h, w = size(img)
     end
     img, SmallBlocks((length(1:2:h), w))
 end
 
 function _downscale_big(img::AbstractMatrix{<:Colorant}, maxsize::NTuple{2,Int})
     maxheight, maxwidth = max.(maxsize, 5)
-    h, w = map(length, axes(img))
+    h, w = size(img)
     while h > maxheight || 2w > maxwidth
         img = restrict(img)
-        h, w = map(length, axes(img))
+        h, w = size(img)
     end
     img, BigBlocks((h, 2w))
 end
@@ -72,20 +73,21 @@ function _printc(io::IO, x::Crayon, args...)
 end
 
 """
-    ascii_encode([io::IO], enc::ImageEncoder, colordepth::TermColorDepth, img, [maxheight], [maxwidth])
+    ascii_encode(io::IO, enc::ImageEncoder, colordepth::TermColorDepth, img; trail_nl::Bool=false, ret::Bool=false)
 
 Transforms the pixel of the given image `img`, which has to be an
 array of `Colorant`, into a string of unicode characters using
 ansi terminal colors or directly writes into a i/o stream.
 
-- The encoder `enc` specifies which kind of unicode represenation
-  should be used.
+- The encoder `enc` specifies which kind of unicode represenation should be used.
 
 - The `colordepth` can either be `TermColor8bit()` or `TermColor24bit()`
   and specifies which terminal color codes should be used.
 
 It `ret` is set, the function returns a vector of strings containing the encoded image.
 Each element represent one line. The lines do not contain newline characters.
+
+If `trail_nl` is given, a final trailing newline is appended.
 """
 function ascii_encode(
     io::IO,
@@ -190,51 +192,68 @@ function ascii_encode(
     ret ? readlines(io) : nothing
 end
 
-# use a `PipeBuffer` as io and returns encoded data reading lines of this buffer (using `readlines(io)`)
-ascii_encode(enc::SmallBlocks, args...) = ascii_encode(PipeBuffer(), enc, args...; ret=true)
+color_buffer() = IOContext(PipeBuffer(), :color => Base.get_have_color())
 
-ascii_encode(enc::BigBlocks, args...) = ascii_encode(PipeBuffer(), enc, args...; ret=true)
+# use a `PipeBuffer` as io and returns encoded data reading lines of this buffer (using `readlines(io)`)
+ascii_encode(enc::SmallBlocks, args...; kws...) =
+    ascii_encode(color_buffer(), enc, args...; ret=true, kws...)
+ascii_encode(enc::BigBlocks, args...; kws...) =
+    ascii_encode(color_buffer(), enc, args...; ret=true, kws...)
 
 """
-    ascii_display([stream], img, [depth::TermColorDepth], [maxsize])
+    ascii_show(stream, img, colordepth::TermColorDepth, encoder::Symbol=:auto, maxsize::Tuple=displaysize(io))
 
 Displays the given image `img` using unicode characters and terminal colors.
 `img` has to be an array of `Colorant`.
 
-- `maxheight` and `maxwidth` specify the maximum numbers of
-  string characters that should be used for the resulting image.
+- `maxsize` specifies the maximum numbers of string characters (lines, columns)
+  that should be used for the resulting image.
   Larger images are downscaled automatically using `restrict`.
 
-If working in the REPL, the function tries to choose the encoding
-based on the current display size. The image will also be
-downsampled to fit into the display (using `restrict`).
+If working in the REPL, the function tries to choose the encoding based on the current display size.
+The image will also be downsampled to fit into the display (using `restrict`).
 """
-function ascii_display(
+function ascii_show(
     io::IO,
     img::AbstractMatrix{<:Colorant},
     colordepth::TermColorDepth,
+    encoder::Symbol=:auto,
     maxsize::Tuple=displaysize(io);
-    kwargs...
+    kws...
 )
     io_h, io_w = maxsize
-    img_h, img_w = map(length, axes(img))
-    downscale = img_h ≤ io_h - 4 && 2img_w ≤ io_w ? _downscale_big : _downscale_small
-    img, enc = downscale(img, (io_h - 4, io_w))
-    ascii_encode(io, enc, colordepth, img; kwargs...)
-    io
+    downscale = if encoder === :auto
+        img_h, img_w = size(img)
+        img_h ≤ io_h && 2img_w ≤ io_w ? _downscale_big : _downscale_small
+    elseif encoder === :small
+        _downscale_small
+    elseif encoder === :big
+        _downscale_big
+    end
+    img, enc = downscale(img, (io_h, io_w))
+    ascii_encode(io, enc, colordepth, img; kws...)
 end
 
-function ascii_display(
+function ascii_show(
     io::IO,
     img::AbstractVector{<:Colorant},
     colordepth::TermColorDepth,
+    encoder::Symbol=:auto,
     maxsize::Tuple=displaysize(io);
-    kwargs...
+    kws...
 )
-    io_h, io_w = maxsize
-    img_w = length(img)
-    downscale = 3img_w ≤ io_w ? _downscale_big : _downscale_small
+    _, io_w = maxsize
+    downscale = if encoder === :auto
+        img_w = length(img)
+        3img_w ≤ io_w ? _downscale_big : _downscale_small
+    elseif encoder === :small
+        _downscale_small
+    elseif encoder === :big
+        _downscale_big
+    end
     img, enc = downscale(img, io_w)
-    ascii_encode(io, enc, colordepth, img; kwargs...)
-    io
+    ascii_encode(io, enc, colordepth, img; kws...)
 end
+
+ascii_show(img::AbstractArray{<:Colorant}, args...; kws...) =
+    ascii_show(color_buffer(), img, args...; ret=true, kws...)

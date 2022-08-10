@@ -5,7 +5,7 @@ using Crayons
 
 import OffsetArrays: Origin
 
-export ascii_display
+export ascii_show
 
 include("colorant2ansi.jl")
 include("ascii.jl")
