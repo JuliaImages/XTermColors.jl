@@ -32,16 +32,11 @@ colorant2ansi(color) = _colorant2ansi(color, TermColor8bit())
 function _colorant2ansi(
     col::Union{AbstractRGB,AbstractGray,Color{<:Any,1}}, ::TermColor8bit
 )
-    r, g, b = rgb = clamped01_rgb(col)
-    cube = 16 + 36trunc(Int, 5r) + 6trunc(Int, 5g) + trunc(Int, 5b)  # 216 colors levels: cube 6x6x6
+    r, g, b = clamped01_rgb(col)
     if r == g == b
-        if r % 43 == 16  # prefer cube gray levels: 16, 59, 102, 145, 188, 231
-            cube
-        else
-            232 + clamp(trunc(Int, (23 + 2)r), 0, 23)  # 24 gray levels + black + white = 26
-        end
+        232 + clamp(trunc(Int, (23 + 2)r), 0, 23)  # 24 gray levels + black + white = 26
     else
-        cube
+        16 + 36trunc(Int, 5r) + 6trunc(Int, 5g) + trunc(Int, 5b)  # 216 colors levels: cube 6x6x6
     end
 end
 _colorant2ansi(col::Union{AbstractRGB,AbstractGray,Color{<:Any,1}}, ::TermColor24bit) =

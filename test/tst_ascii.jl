@@ -19,8 +19,7 @@ end
         )
     end
     @testset "transparent gray square" begin
-        # alpha is ignored for small block encoding.
-        # So this yields the exact same results as above.
+        # alpha is ignored for small block encoding: this yields the exact same results as above.
         img, enc = _downscale_small(gray_square_alpha, (2, 2))
         @test enc.size === (1, 2)
         @check_enc(
@@ -413,28 +412,25 @@ end
     end
 end
 
-@testset "ascii_display (frontend interface)" begin
+@testset "ascii_show (frontend interface)" begin
     @testset "lighthouse 8bit" begin
         img = imresize(lighthouse, (30, 30))
-        res = readlines(
-            @ensurecolor ascii_display(PipeBuffer(), img, TermColor8bit(), (20, 20))
-        )
-        @test_reference "reference/display_lighthouse_20x20_8bit.txt" res
-        res = readlines(
-            @ensurecolor ascii_display(PipeBuffer(), img, TermColor8bit(), (80, 80))
-        )
-        @test_reference "reference/display_lighthouse_80x80_8bit.txt" res
+        for sz in [(20, 20), (80, 80)], enc in (:small, :big, :auto)
+            res = @ensurecolor ascii_show(img, TermColor8bit(), enc, sz)
+            @test_reference "reference/show_lighthouse_$(sz[1])x$(sz[2])_$(enc)_8bit.txt" res
+            res = @ensurecolor ascii_show(img[1, :], TermColor8bit(), enc, sz)
+            @test_reference "reference/show_lighthouse_$(sz[2])_$(enc)_8bit.txt" res
+        end
     end
     @testset "mandril 24bit" begin
         img = imresize(mandril, (30, 30))
-        res = readlines(
-            @ensurecolor ascii_display(PipeBuffer(), img, TermColor24bit(), (20, 20))
-        )
-        @test_reference "reference/display_mandril_20x20_24bit.txt" res
-        res = readlines(
-            @ensurecolor ascii_display(PipeBuffer(), img, TermColor24bit(), (80, 80))
-        )
-        @test_reference "reference/display_mandril_80x80_24bit.txt" res
+        for sz in [(20, 20), (80, 80)], enc in (:small, :big, :auto)
+            suffix = "mandril_$(sz[1])x$(sz[2])_$(enc)_24bit"
+            res = @ensurecolor ascii_show(img, TermColor24bit(), enc, sz)
+            @test_reference "reference/show_mandril_$(sz[1])x$(sz[2])_$(enc)_24bit.txt" res
+            res = @ensurecolor ascii_show(img[1, :], TermColor24bit(), enc, sz)
+            @test_reference "reference/show_mandril_$(sz[2])_$(enc)_24bit.txt" res
+        end
     end
 end
 
@@ -443,17 +439,16 @@ end
 
     for I in CartesianIndices(wheel)
         x, y = I.I ./ (size(wheel) .÷ 2)
-        r = sqrt(x^2 + y^2)
-        if r < 1
+        if (r = sqrt(x^2 + y^2)) < 1
             h = atand(x, y) + 90
             wheel[I] = RGB(HSV(h, r, 1))
         end
     end
 
     for depth in (8, 24)
-        enc = depth == 8 ? TermColor8bit() : TermColor24bit()
-        res = readlines(@ensurecolor ascii_display(PipeBuffer(), wheel, enc, (80, 80)))
-        @test_reference "reference/display_wheel_80x80_$(depth)bit.txt" res
+        colordepth = depth == 8 ? TermColor8bit() : TermColor24bit()
+        res = @ensurecolor ascii_show(wheel, colordepth, :auto, (80, 80))
+        @test_reference "reference/show_wheel_80x80_$(depth)bit.txt" res
     end
 end
 
@@ -461,8 +456,8 @@ end
     bar = Gray{N0f8}.(repeat(range(0; stop=1, length=64), 1, 2)')
 
     for depth in (8, 24)
-        enc = depth == 8 ? TermColor8bit() : TermColor24bit()
-        res = readlines(@ensurecolor ascii_display(PipeBuffer(), bar, enc, (80, 80)))
-        @test_reference "reference/display_bar_80x80_$(depth)bit.txt" res
+        colordepth = depth == 8 ? TermColor8bit() : TermColor24bit()
+        res = @ensurecolor ascii_show(bar, colordepth, :auto, (80, 80))
+        @test_reference "reference/show_bar_80x80_$(depth)bit.txt" res
     end
 end
