@@ -11,7 +11,7 @@
             hex = XTermColors.TERMCOLOR256_LOOKUP[idx]
             col = RGB(reinterpret(RGB24, hex))
             ansi = _colorant2ansi(col, enc)
-            if idx % 43 == 16  # gray levels values mapping to cube levels
+            if idx % 43 == 16  # cube levels mapping to gray levels instead
                 @test ansi > 231
             else
                 @test ansi == idx
