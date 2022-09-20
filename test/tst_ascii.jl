@@ -461,3 +461,15 @@ end
         @test_reference "reference/show_bar_80x80_$(depth)bit.txt" res
     end
 end
+
+@testset "Callback" begin
+    img = imresize(mandril, (30, 30))
+    fgcols, bgcols = [], []
+    callback(I, fgcol, bgcol, chars...) = begin
+        push!(fgcols, fgcol)
+        push!(bgcols, bgcol)
+    end
+    @ensurecolor ascii_show(img, TermColor24bit(), :auto, (20, 20); callback=callback)
+    @test length(fgcols) > 100
+    @test !any(ismissing.(bgcols))
+end

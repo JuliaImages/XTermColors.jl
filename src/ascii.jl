@@ -73,7 +73,7 @@ function _printc(io::IO, x::Crayon, args...)
 end
 
 """
-    ascii_encode(io::IO, enc::ImageEncoder, colordepth::TermColorDepth, img; trail_nl::Bool=false, ret::Bool=false)
+    ascii_encode(io::IO, enc::ImageEncoder, colordepth::TermColorDepth, img; trail_nl::Bool=false, ret::Bool=false, callback=nothing)
 
 Transforms the pixel of the given image `img`, which has to be an
 array of `Colorant`, into a string of unicode characters using
@@ -84,10 +84,14 @@ ansi terminal colors or directly writes into a i/o stream.
 - The `colordepth` can either be `TermColor8bit()` or `TermColor24bit()`
   and specifies which terminal color codes should be used.
 
+# Arguments
+
 It `ret` is set, the function returns a vector of strings containing the encoded image.
 Each element represent one line. The lines do not contain newline characters.
 
 If `trail_nl` is given, a final trailing newline is appended.
+
+The keyword argument `callback` can be used to save encoded colors and characters.
 """
 function ascii_encode(
     io::IO,
@@ -95,10 +99,11 @@ function ascii_encode(
     colordepth::TermColorDepth,
     img::AbstractMatrix{<:Colorant};
     trail_nl::Bool=false,
-    ret::Bool=false
+    ret::Bool=false,
+    callback=nothing
 )
     yinds, xinds = axes(img)
-    for y in first(yinds):2:last(yinds)
+    for (n, y) in enumerate(first(yinds):2:last(yinds))
         _printc(io, RESET)
         for x in xinds
             fgcol = _colorant2ansi(img[y, x], colordepth)
@@ -109,7 +114,8 @@ function ascii_encode(
                 # has only the upper pixel defined.
                 nothing
             end
-            _printc(io, Crayon(; foreground=fgcol, background=bgcol), "▀")
+            callback ≡ nothing || callback((n, x), fgcol, bgcol, '▀')
+            _printc(io, Crayon(; foreground=fgcol, background=bgcol), '▀')
         end
         _printc(io, RESET)
         (trail_nl || y < last(yinds)) && println(io)
@@ -123,7 +129,8 @@ function ascii_encode(
     colordepth::TermColorDepth,
     img::AbstractMatrix{<:Colorant};
     trail_nl::Bool=false,
-    ret::Bool=false
+    ret::Bool=false,
+    callback=nothing
 )
     yinds, xinds = axes(img)
     for y in yinds
@@ -132,6 +139,7 @@ function ascii_encode(
             color = img[y, x]
             fgcol = _colorant2ansi(color, colordepth)
             chr = _charof(alpha(color))
+            callback ≡ nothing || callback((y, x), fgcol, missing, chr, chr)
             _printc(io, Crayon(; foreground=fgcol), chr, chr)
         end
         _printc(io, RESET)
@@ -146,13 +154,15 @@ function ascii_encode(
     colordepth::TermColorDepth,
     img::AbstractVector{<:Colorant};
     trail_nl::Bool=false,
-    ret::Bool=false
+    ret::Bool=false,
+    callback=nothing
 )
     _printc(io, RESET)
     for i in axes(img, 1)
         color = img[i]
         fgcol = _colorant2ansi(color, colordepth)
         chr = _charof(alpha(color))
+        callback ≡ nothing || callback((i,), fgcol, missing, chr)
         _printc(io, Crayon(; foreground=fgcol), chr)
     end
     _printc(io, RESET)
@@ -166,7 +176,8 @@ function ascii_encode(
     colordepth::TermColorDepth,
     img::AbstractVector{<:Colorant};
     trail_nl::Bool=false,
-    ret::Bool=false
+    ret::Bool=false,
+    callback=nothing
 )
     w = length(img)
     n = enc.size[2] ÷ 3 == w ? w : enc.size[2] ÷ 6
@@ -176,7 +187,8 @@ function ascii_encode(
         color = img[i]
         fgcol = _colorant2ansi(color, colordepth)
         chr = _charof(alpha(color))
-        _printc(io, Crayon(; foreground=fgcol), chr, chr, " ")
+        callback ≡ nothing || callback((i,), fgcol, missing, chr, chr, ' ')
+        _printc(io, Crayon(; foreground=fgcol), chr, chr, ' ')
     end
     if n < w  # right part
         _printc(io, RESET, " … ")
@@ -184,7 +196,8 @@ function ascii_encode(
             color = img[i]
             fgcol = _colorant2ansi(color, colordepth)
             chr = _charof(alpha(color))
-            _printc(io, Crayon(; foreground=fgcol), chr, chr, " ")
+            callback ≡ nothing || callback((i,), fgcol, missing, chr, chr, ' ')
+            _printc(io, Crayon(; foreground=fgcol), chr, chr, ' ')
         end
     end
     _printc(io, RESET)
@@ -222,12 +235,12 @@ function ascii_show(
     kws...
 )
     io_h, io_w = maxsize
-    downscale = if encoder === :auto
+    downscale = if encoder ≡ :auto
         img_h, img_w = size(img)
         img_h ≤ io_h && 2img_w ≤ io_w ? _downscale_big : _downscale_small
-    elseif encoder === :small
+    elseif encoder ≡ :small
         _downscale_small
-    elseif encoder === :big
+    elseif encoder ≡ :big
         _downscale_big
     end
     img, enc = downscale(img, (io_h, io_w))
@@ -243,12 +256,12 @@ function ascii_show(
     kws...
 )
     _, io_w = maxsize
-    downscale = if encoder === :auto
+    downscale = if encoder ≡ :auto
         img_w = length(img)
         3img_w ≤ io_w ? _downscale_big : _downscale_small
-    elseif encoder === :small
+    elseif encoder ≡ :small
         _downscale_small
-    elseif encoder === :big
+    elseif encoder ≡ :big
         _downscale_big
     end
     img, enc = downscale(img, io_w)
