@@ -1,6 +1,6 @@
 name = "XTermColors"
 uuid = "c8c2cc18-de81-4e68-b407-38a3a0c0491f"
-version = "0.2.0"
+version = "0.2.1"
 
 [deps]
 Crayons = "a8cc5b0e-0ffa-5ad4-8c14-923d3ee1735f"
